@@ -29,6 +29,9 @@ import { AiModule } from './ai/ai.module';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
+        ssl: {
+          rejectUnauthorized: false, // Solo para desarrollo
+        },
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true, // En producción debería ser false
         timezone: 'Z', // Usar UTC para fechas
