@@ -46,6 +46,40 @@ export class PaymentsController {
     }
   }
 
+  // Añade este endpoint a tu controlador
+  @Post('create-payment-intent')
+  async createPaymentIntent(
+    @Body()
+    createPaymentDto: { userId: number; planId: number; isAnnual: boolean },
+    @Req() request,
+  ) {
+    try {
+      const { userId, planId, isAnnual } = createPaymentDto;
+
+      // Verificar que el usuario esté autorizado
+      if (request.user.id !== userId && !request.user.isAdmin) {
+        throw new HttpException(
+          'No autorizado para realizar esta acción',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      return await this.paymentsService.createPaymentIntent(
+        userId,
+        planId,
+        isAnnual,
+      );
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: `Error al crear intención de pago: ${error.message}`,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   /**
    * Webhook para recibir eventos de Stripe
    * Este endpoint debe estar públicamente accesible para Stripe

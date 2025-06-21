@@ -104,4 +104,38 @@ export class StripeService {
       //           );
     }
   }
+
+  async createPaymentIntent(
+    amount: number,
+    currency: string,
+    userId: number,
+    planId: number,
+    isAnnual: boolean,
+  ) {
+    try {
+      // Crear un PaymentIntent con Stripe
+      const paymentIntent = await this.stripe.paymentIntents.create({
+        amount,
+        currency,
+        automatic_payment_methods: { enabled: true },
+        metadata: {
+          userId: userId.toString(),
+          planId: planId.toString(),
+          isAnnual: isAnnual.toString(),
+        },
+      });
+
+      return {
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+        amount: paymentIntent.amount,
+        status: paymentIntent.status,
+      };
+    } catch (error) {
+      console.error('Error al recuperar la sesión de pago:', error);
+      throw new InternalServerErrorException(
+        `Error al recuperar la sesión de pago: ${error.message}`,
+      );
+    }
+  }
 }

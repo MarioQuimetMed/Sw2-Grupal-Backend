@@ -198,4 +198,30 @@ export class PaymentsService {
       throw new Error(`Error al verificar el pago: ${error.message}`);
     }
   }
+
+  async createPaymentIntent(userId: number, planId: number, isAnnual: boolean) {
+    try {
+      // Obtener el plan para calcular el precio
+      const plan = await this.plansService.findOne(planId);
+      if (!plan) {
+        throw new Error(`Plan con ID ${planId} no encontrado`);
+      }
+
+      // Calcular el precio en centavos
+      const price = isAnnual
+        ? plan.price_annual * 100
+        : plan.price_monthly * 100;
+
+      // Crear el PaymentIntent
+      return await this.stripeService.createPaymentIntent(
+        Math.round(price), // Stripe requiere un entero
+        'usd',
+        userId,
+        planId,
+        isAnnual,
+      );
+    } catch (error) {
+      throw new Error(`Error al crear intención de pago: ${error.message}`);
+    }
+  }
 }
