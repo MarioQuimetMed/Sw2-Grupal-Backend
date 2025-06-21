@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
@@ -74,5 +75,33 @@ export class StripeService {
       signature,
       webhookSecret,
     );
+  }
+
+  // Añade este método a tu clase StripeService existente
+  async retrieveCheckoutSession(sessionId: string) {
+    try {
+      // Recuperar la información de la sesión desde Stripe
+      const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+
+      // Verificar si el pago fue exitoso
+      // Una sesión con status 'complete' y payment_status 'paid' indica un pago exitoso
+      const isSuccessful =
+        session.status === 'complete' && session.payment_status === 'paid';
+
+      return {
+        session,
+        isSuccessful,
+      };
+    } catch (error) {
+      console.error('Error al recuperar la sesión de pago:', error);
+      throw new InternalServerErrorException(
+        `Error al recuperar la sesión de pago: ${error.message}`,
+      );
+
+      //  console.error('Error al asignar plan:', assignError);
+      //           throw new BadRequestException(
+      //             `Error al asignar plan: ${assignError.message}`,
+      //           );
+    }
   }
 }

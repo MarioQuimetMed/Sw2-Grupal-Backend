@@ -1,12 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Post,
+  Get,
   Body,
   Headers,
+  Param,
   RawBodyRequest,
   Req,
   UseGuards,
   BadRequestException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -24,6 +29,21 @@ export class PaymentsController {
   @UseGuards(AuthGuard('jwt'))
   async createCheckoutSession(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentsService.createPaymentSession(createPaymentDto);
+  }
+
+  @Get('verify/:sessionId')
+  async verifyPayment(@Param('sessionId') sessionId: string) {
+    try {
+      return await this.paymentsService.verifyPaymentSession(sessionId);
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: `Error al verificar el pago: ${error.message}`,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   /**

@@ -168,4 +168,34 @@ export class PaymentsService {
       );
     }
   }
+
+  async verifyPaymentSession(sessionId: string) {
+    try {
+      const { session, isSuccessful } =
+        await this.stripeService.retrieveCheckoutSession(sessionId);
+
+      if (isSuccessful) {
+        // Opcional: Puedes actualizar la base de datos aquí para marcar la suscripción como activa
+        // si es que esto no lo estás haciendo ya en el webhook
+
+        return {
+          success: true,
+          status: session.status,
+          paymentStatus: session.payment_status,
+          customerId: session.customer,
+          subscriptionId: session.subscription,
+          // Puedes incluir más datos relevantes para tu aplicación
+        };
+      } else {
+        return {
+          success: false,
+          status: session.status,
+          paymentStatus: session.payment_status,
+          message: 'El pago no se ha completado exitosamente',
+        };
+      }
+    } catch (error) {
+      throw new Error(`Error al verificar el pago: ${error.message}`);
+    }
+  }
 }
