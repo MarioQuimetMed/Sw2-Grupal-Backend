@@ -19,7 +19,7 @@ import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { AccountsService } from '../accounts/accounts.service';
-import { TransactionType } from '../enums/transaction-type.enum';
+// import { TransactionType } from '../enums/transaction-type.enum';
 
 @Controller('transactions')
 @UseGuards(AuthGuard('jwt'))
@@ -52,10 +52,8 @@ export class TransactionsController {
   @Get()
   async findAll(
     @Query('idAccount') idAccount?: number,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('type') type?: TransactionType,
-    @Query('idCategory') idCategory?: number,
+    @Query('month') month?: string,
+    @Query('year') year?: string,
     @Request() req?,
   ) {
     // Si se proporciona una cuenta, verificar que pertenece al usuario
@@ -70,12 +68,10 @@ export class TransactionsController {
       }
     }
 
-    return this.transactionsService.findAll({
+    return this.transactionsService.findAllByMonth({
       idAccount,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-      type,
-      idCategory,
+      month,
+      year,
     });
   }
 
@@ -96,11 +92,7 @@ export class TransactionsController {
       );
     }
 
-    return this.transactionsService.getSummary(
-      idAccount,
-      new Date(startDate),
-      new Date(endDate),
-    );
+    return this.transactionsService.findAll();
   }
 
   @Get(':id')

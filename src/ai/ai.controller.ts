@@ -1,7 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Get,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AiService } from './ai.service';
 
@@ -21,5 +28,11 @@ export class AiController {
       userId,
       data.accountId,
     );
+  }
+  //Metodo para obtener 3 sugerencias en base a los datos del usuario
+  @Get('suggestions')
+  async getSuggestions(@Request() req) {
+    const userId = req.user.id || req.user.sub;
+    return this.aiService.getSuggestions(userId);
   }
 }

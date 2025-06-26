@@ -48,6 +48,7 @@ export class PaymentsController {
 
   // Añade este endpoint a tu controlador
   @Post('create-payment-intent')
+  @UseGuards(AuthGuard('jwt'))
   async createPaymentIntent(
     @Body()
     createPaymentDto: { userId: number; planId: number; isAnnual: boolean },

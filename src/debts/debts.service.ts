@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Debt } from './debts.entity';
 import { CreateDebtDto } from './dto/create-debt.dto';
 import { UpdateDebtDto } from './dto/update-debt.dto';
@@ -37,6 +37,14 @@ export class DebtsService {
     // Crear la deuda
     const debt = this.debtRepository.create(createDebtDto);
     return this.debtRepository.save(debt);
+  }
+
+  async findByAccounts(accountIds: number[]): Promise<Debt[]> {
+    return this.debtRepository.find({
+      where: { idAccount: In(accountIds) },
+      relations: ['account'],
+      order: { end_date: 'DESC' },
+    });
   }
 
   async findAll(): Promise<Debt[]> {

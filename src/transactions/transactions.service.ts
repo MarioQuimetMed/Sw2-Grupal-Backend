@@ -76,6 +76,44 @@ export class TransactionsService {
       order: { date: 'DESC' },
     });
   }
+  async findAllByMonth(options?: {
+    idAccount?: number;
+    month?: string;
+    year?: string;
+  }): Promise<Transaction[]> {
+    const where: FindOptionsWhere<Transaction> = {};
+
+    if (options) {
+      if (options.idAccount !== undefined) {
+        where.idAccount = options.idAccount;
+      }
+    }
+
+    // Filtrar por mes y año si se proporcionan
+    let dateFilter: { date: any } | undefined = undefined;
+    if (options?.month && options?.year) {
+      const year = parseInt(options.year, 10);
+      const month = parseInt(options.month, 10);
+
+      // Primer día del mes
+      const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0);
+      // Último día del mes
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+      dateFilter = {
+        date: Between(startDate, endDate),
+      };
+    }
+
+    return this.transactionsRepository.find({
+      where: {
+        ...where,
+        ...(dateFilter || {}),
+      },
+      relations: ['category'],
+      order: { date: 'DESC' },
+    });
+  }
 
   async findOne(id: number): Promise<Transaction> {
     const transaction = await this.transactionsRepository.findOne({
@@ -222,5 +260,21 @@ export class TransactionsService {
       netTotal: totalIncome - totalExpense,
       categorySummary,
     };
+  }
+
+  async getSumByTypeAndAccounts(
+    accountIds: number[],
+    type: TransactionType,
+    fromDate: Date,
+  ): Promise<number> {
+    const result = await this.transactionsRepository
+      .createQueryBuilder('t')
+      .where('t.idAccount IN (:...accountIds)', { accountIds })
+      .andWhere('t.type = :type', { type })
+      .andWhere('t.date >= :fromDate', { fromDate })
+      .select('SUM(t.amount)', 'sum')
+      .getRawOne<{ sum: string }>();
+
+    return Number(result?.sum) || 0;
   }
 }

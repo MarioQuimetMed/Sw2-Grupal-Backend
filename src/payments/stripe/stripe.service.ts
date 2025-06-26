@@ -134,7 +134,7 @@ export class StripeService {
     } catch (error) {
       console.error('Error al recuperar la sesión de pago:', error);
       throw new InternalServerErrorException(
-        `Error al recuperar la sesión de pago: ${error.message}`,
+        `Error al crear intención de pago: ${error.message}`, // Correcto
       );
     }
   }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import {
   Controller,
   Get,
@@ -108,5 +109,17 @@ export class PlansController {
   @UseGuards(AuthGuard('jwt'))
   async createPredefinedPlans(): Promise<Plan[]> {
     return this.plansService.createPredefinedPlans();
+  }
+
+  /**
+   * Endpoint para que un usuario vea su propio plan activo
+   * @param req - Solicitud con info del usuario autenticado
+   * @returns Plan activo del usuario actual
+   */
+  @Get('my-active-plan/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async getMyActivePlan(@Param('id') id: number) {
+    // const userId = (req.user.id as { id: number }).id;
+    return this.plansService.getUserActivePlan(id);
   }
 }

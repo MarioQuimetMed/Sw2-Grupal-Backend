@@ -154,10 +154,49 @@ export class PaymentsService {
           );
         }
       }
+      //Bloque para Flutter-------------------------------------------------------------
+      if (event.type === 'payment_intent.succeeded') {
+        console.log('Evento de PaymentIntent completado detectado');
+        const paymentIntent = event.data.object;
 
-      console.log(
-        'Evento recibido pero no procesado (no es checkout.session.completed)',
-      );
+        // Extraer los metadatos
+        if (
+          !paymentIntent.metadata ||
+          !paymentIntent.metadata.userId ||
+          !paymentIntent.metadata.planId
+        ) {
+          console.error('Metadatos incompletos:', paymentIntent.metadata);
+          throw new BadRequestException(
+            'Metadatos del PaymentIntent incompletos',
+          );
+        }
+
+        const userId = parseInt(paymentIntent.metadata.userId, 10);
+        const planId = parseInt(paymentIntent.metadata.planId, 10);
+        const isAnnual = paymentIntent.metadata.isAnnual === 'true';
+
+        // Calcular fechas de suscripción
+        const startDate = new Date();
+        const endDate = new Date();
+
+        if (isAnnual) {
+          endDate.setFullYear(endDate.getFullYear() + 1);
+        } else {
+          endDate.setMonth(endDate.getMonth() + 1);
+        }
+
+        // Asignar el plan al usuario
+        const userPlan = await this.plansService.assignPlanToUser({
+          user_id: userId,
+          plan_id: planId,
+          start_date: startDate,
+          end_date: endDate,
+          payment_status: 'completed',
+        });
+
+        return { success: true, userPlanId: userPlan.id };
+      }
+
       return { received: true, processed: false };
     } catch (error) {
       console.error('Error procesando webhook:', error);

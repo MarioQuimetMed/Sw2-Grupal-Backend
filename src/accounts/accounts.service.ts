@@ -32,6 +32,7 @@ export class AccountsService {
   }
 
   async findByUser(usuarioId: number): Promise<Account[]> {
+    console.log('Buscando cuentas para el usuario:', usuarioId);
     return this.accountsRepository.find({
       where: { usuarioId, is_active: true },
     });

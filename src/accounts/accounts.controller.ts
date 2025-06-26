@@ -40,12 +40,13 @@ export class AccountsController {
   findAll(@Request() req, @Query('usuarioId') usuarioId?: number) {
     // Si se proporciona un ID de usuario y es diferente al usuario autenticado,
     // verificar permisos (por ahora solo permitimos ver las propias)
-    if (usuarioId && req.user.userId !== Number(usuarioId)) {
+    console.log('Usuario autenticado:', req.user.id);
+    console.log('Usuario solicitado:', usuarioId);
+    if (usuarioId && req.user.id !== Number(usuarioId)) {
       throw new ForbiddenException('Solo puedes ver tus propias cuentas');
     }
-
     // Si no se proporciona usuarioId, filtrar por el usuario autenticado
-    return this.accountsService.findByUser(usuarioId || req.user.userId);
+    return this.accountsService.findByUser(usuarioId || req.user.id);
   }
 
   @Get(':id')

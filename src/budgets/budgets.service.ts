@@ -15,6 +15,7 @@ import { AccountsService } from '../accounts/accounts.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { differenceInMonths } from 'date-fns';
 import { TransactionType } from '../enums/transaction-type.enum';
+import { In } from 'typeorm';
 
 @Injectable()
 export class BudgetsService {
@@ -41,6 +42,14 @@ export class BudgetsService {
     // Crear el presupuesto
     const budget = this.budgetRepository.create(createBudgetDto);
     return this.budgetRepository.save(budget);
+  }
+
+  async findByAccounts(accountIds: number[]): Promise<Budget[]> {
+    return this.budgetRepository.find({
+      where: { idAccount: In(accountIds) },
+      relations: ['account'],
+      order: { end_date: 'DESC' },
+    });
   }
 
   async findAll(): Promise<Budget[]> {

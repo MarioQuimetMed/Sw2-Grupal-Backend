@@ -8,7 +8,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { Plan } from './plans.entity';
 import { UserPlan } from './user-plan.entity';
 import { CreatePlanDto } from './dto/create-plan.dto';
@@ -208,6 +208,53 @@ export class PlansService {
         error instanceof Error ? error.message : 'Error desconocido';
       throw new InternalServerErrorException(
         `Error al asignar plan al usuario: ${errorMessage}`,
+      );
+    }
+  }
+
+  /**
+   * Obtiene el plan activo de un usuario
+   * @param userId - ID del usuario
+   * @returns Plan activo del usuario o un mensaje si no está suscrito
+   */
+  async getUserActivePlan(userId: number): Promise<{
+    plan?: Plan;
+    userPlan?: UserPlan;
+    isSubscribed: boolean;
+    message?: string;
+  }> {
+    try {
+      // Obtener la fecha actual
+      const currentDate = new Date();
+
+      // Buscar un plan de usuario activo
+      const userPlan = await this.userPlanRepository.findOne({
+        where: {
+          user_id: userId,
+          start_date: LessThanOrEqual(currentDate),
+          end_date: MoreThanOrEqual(currentDate),
+          payment_status: 'completed', // Solo planes con pago completado
+        },
+        relations: ['plan'], // Incluir la relación con el plan
+        order: { end_date: 'DESC' }, // Si hay múltiples (caso raro), tomar el que termina después
+      });
+
+      if (!userPlan) {
+        return {
+          isSubscribed: false,
+          message: 'El usuario no está suscrito a ningún plan actualmente',
+        };
+      }
+
+      return {
+        userPlan,
+        isSubscribed: true,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error desconocido';
+      throw new InternalServerErrorException(
+        `Error al obtener el plan activo del usuario: ${errorMessage}`,
       );
     }
   }
